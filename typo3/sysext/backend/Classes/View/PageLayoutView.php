@@ -1821,7 +1821,7 @@ class PageLayoutView extends \TYPO3\CMS\Recordlist\RecordList\AbstractDatabaseRe
                     break;
                 case 'uploads':
                     if ($row['media']) {
-                        $out .= $this->linkEditContent($this->getThumbCodeUnlinked($row, 'tt_content', 'media'), $row) . '<br />';
+                        $out .= $this->createConditionalDisplayBlock($row, $this->linkEditContent($this->getThumbCodeUnlinked($row, 'tt_content', 'media'), $row) . '<br />');
                     }
                     break;
                 case 'menu':
@@ -2634,5 +2634,29 @@ class PageLayoutView extends \TYPO3\CMS\Recordlist\RecordList\AbstractDatabaseRe
     protected function getPageLayoutController()
     {
         return $GLOBALS['SOBE'];
+    }
+
+    protected function createConditionalDisplayBlock($row, $block) {
+        $size = 0;
+        if($row['media']) {
+            $size = sizeof($row['media']);
+        }
+
+        $rnd = sha1(microtime());
+
+        $res .= '<script>
+
+function fix_fnk_'.$rnd.'() {
+    document.getElementById(\'fix_lnk_'.$rnd.'\').style.display=\'none\';
+    document.getElementById(\'fix_dta_'.$rnd.'\').innerHTML = atob(document.getElementById(\'fix_dta_'.$rnd.'\').innerHTML);
+    document.getElementById(\'fix_dta_'.$rnd.'\').style.display=\'block\';
+}
+</script>';
+
+        $res .= '<div id="fix_lnk_'.$rnd.'" style="display: block;"><a href="javascript: fix_fnk_'.$rnd.'();" style="text-decoration: underline;">'.$size.' Dateien anzeigen</a></div>';
+
+        $res .= '<div id="fix_dta_'.$rnd.'" style="display: none;">'.base64_encode($block).'</div>';
+
+        return $res;
     }
 }
