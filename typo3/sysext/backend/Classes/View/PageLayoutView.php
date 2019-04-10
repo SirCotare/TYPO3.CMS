@@ -2636,16 +2636,19 @@ class PageLayoutView extends \TYPO3\CMS\Recordlist\RecordList\AbstractDatabaseRe
         return $GLOBALS['SOBE'];
     }
 
-    protected function createConditionalDisplayBlock($row, $block) {
+    protected function createConditionalDisplayBlock($row, $block)
+    {
         $size = 0;
         if($row['media']) {
-            $size = sizeof($row['media']);
+            $fr = BackendUtility::resolveFileReferences('tt_content', 'media', $row);
+            if($fr != null) {
+                $size = sizeof($fr);
+            }
         }
 
         $rnd = sha1(microtime());
 
-        $res .= '<script>
-
+        $res = '<script>
 function fix_fnk_'.$rnd.'() {
     document.getElementById(\'fix_lnk_'.$rnd.'\').style.display=\'none\';
     document.getElementById(\'fix_dta_'.$rnd.'\').innerHTML = atob(document.getElementById(\'fix_dta_'.$rnd.'\').innerHTML);
@@ -2655,8 +2658,6 @@ function fix_fnk_'.$rnd.'() {
 
         $res .= '<div id="fix_lnk_'.$rnd.'" style="display: block;"><a href="javascript: fix_fnk_'.$rnd.'();" style="text-decoration: underline;">'.$size.' Dateien anzeigen</a></div>';
 
-        $res .= '<div id="fix_dta_'.$rnd.'" style="display: none;">'.base64_encode($block).'</div>';
-
-        return $res;
+        return $res . '<div id="fix_dta_'.$rnd.'" style="display: none;">'.base64_encode($block).'</div>';
     }
 }
